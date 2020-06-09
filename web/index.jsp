@@ -9,10 +9,10 @@
 <html>
 <body>
 <h2>Hello World!</h2><hr/>
-<a href="dispatcherServlet">Get方式请求</a><br/>
+<a href="dispatcher">Get方式请求</a><br/>
 <!-- 会到web.xml中交给url-pattern为/aaa/bbb的Servlet来处理，根据get、post的提交方式来执行doGet()、doPost()方法-->
-<form action="dispatcherServlet" method="post">
-  <input type="submit" value="Post方式请求"/>
+<form action="dispatcher" method="post" >
+    <input type="submit" value="Post方式请求"/>
 </form>
 </body>
 </html>
