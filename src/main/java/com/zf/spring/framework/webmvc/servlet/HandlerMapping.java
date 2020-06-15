@@ -5,12 +5,12 @@ import java.util.regex.Pattern;
 
 public class HandlerMapping {
     private Pattern pattern;
-    private Object instance;
+    private Object controller;
     private Method method;
 
-    public HandlerMapping(Pattern pattern, Object instance, Method method) {
+    public HandlerMapping(Pattern pattern, Object controller, Method method) {
         this.pattern = pattern;
-        this.instance = instance;
+        this.controller = controller;
         this.method = method;
     }
 
@@ -22,12 +22,12 @@ public class HandlerMapping {
         this.pattern = pattern;
     }
 
-    public Object getInstance() {
-        return instance;
+    public Object getController() {
+        return controller;
     }
 
-    public void setInstance(Object instance) {
-        this.instance = instance;
+    public void setController(Object controller) {
+        this.controller = controller;
     }
 
     public Method getMethod() {

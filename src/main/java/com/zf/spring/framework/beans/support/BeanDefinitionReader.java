@@ -12,7 +12,7 @@ import java.util.Properties;
 
 public class BeanDefinitionReader {
 
-    private Properties properties = new Properties();
+    private Properties contextConfig = new Properties();
 
     private List<String> registerBeanClasses = new ArrayList<String>();
 
@@ -20,7 +20,7 @@ public class BeanDefinitionReader {
         //加载配置文件
         doLoadConfig(configLocations[0]);
         //扫描包
-        doScanner(properties.getProperty("scanPackage"));
+        doScanner(contextConfig.getProperty("scanPackage"));
     }
 
     private void doScanner(String scanPackage) {
@@ -48,7 +48,7 @@ public class BeanDefinitionReader {
     private void doLoadConfig(String configLocation) {
         InputStream is = this.getClass().getClassLoader().getResourceAsStream(configLocation.replace("classpath:", ""));
         try {
-            properties.load(is);
+            contextConfig.load(is);
         } catch (IOException e) {
             e.printStackTrace();
         } finally {
@@ -99,5 +99,9 @@ public class BeanDefinitionReader {
         char[] chars = simpleName.toCharArray();
         chars[0] += 32;
         return new String(chars);
+    }
+
+    public Properties getConfig() {
+        return this.contextConfig;
     }
 }

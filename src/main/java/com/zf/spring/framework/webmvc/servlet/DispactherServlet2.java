@@ -1,5 +1,6 @@
 package com.zf.spring.framework.webmvc.servlet;
 
+import com.sun.org.apache.xpath.internal.operations.Mod;
 import com.zf.spring.framework.annotation.Controller;
 import com.zf.spring.framework.annotation.RequestMapping;
 import com.zf.spring.framework.context.ApplicationContext;
@@ -9,12 +10,10 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -25,6 +24,8 @@ public class DispactherServlet2 extends HttpServlet {
     private List<HandlerMapping> handlerMappings = new ArrayList<HandlerMapping>();
 
     private Map<HandlerMapping, HandlerAdapter> handlerAdapters = new HashMap<HandlerMapping, HandlerAdapter>();
+
+    private List<ViewResolver> viewResolvers = new ArrayList<ViewResolver>();
 
     @Override
     public void init(ServletConfig config) throws ServletException {
@@ -44,6 +45,12 @@ public class DispactherServlet2 extends HttpServlet {
     }
 
     private void initViewResolvers(ApplicationContext applicationContext) {
+        String templateRoot = applicationContext.getConfig().getProperty("templateRoot");
+        String templateRootPath = this.getClass().getClassLoader().getResource(templateRoot).getFile();
+        File file = new File(templateRootPath);
+        for (File listFile : file.listFiles()) {
+            this.viewResolvers.add(new ViewResolver(templateRoot));
+        }
     }
 
     private void initHandlerAdapters(ApplicationContext applicationContext) {
@@ -90,19 +97,50 @@ public class DispactherServlet2 extends HttpServlet {
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        doDispath(req, resp);
+        try {
+            doDispath(req, resp);
+        } catch (Exception e) {
+            e.printStackTrace();
+            Map<String, Object> model = new HashMap<String, Object>();
+            model.put("detail", "500 Exception Detail");
+            model.put("stackTrace", Arrays.toString(e.getStackTrace()));
+            try {
+                processDispatchResult(req, resp, new ModelAndView("500", model));
+            } catch (Exception exception) {
+                exception.printStackTrace();
+            }
+        }
     }
 
-    private void doDispath(HttpServletRequest req, HttpServletResponse resp) {
+    private void doDispath(HttpServletRequest req, HttpServletResponse resp) throws Exception {
         //根据url获取handler
         HandlerMapping handler = getHandler(req);
         if (handler == null) {
-            
+            processDispatchResult(req, resp, new ModelAndView("404"));
+            return;
         }
         
         //根据handler获取handlerAdapter
         HandlerAdapter ha = getHandlerAdapter(handler);
+        //3、根据HandlerAdapter拿到一个ModelAndView
         ModelAndView mv = ha.handler(req, resp, handler);
+        //4、根据ViewResolver根据ModelAndView去拿到View
+        processDispatchResult(req, resp, mv);
+
+    }
+
+    private void processDispatchResult(HttpServletRequest req, HttpServletResponse resp, ModelAndView mv) throws Exception {
+        if (mv == null) {
+            return;
+        }
+        if (viewResolvers.isEmpty()) {
+            return;
+        }
+        for (ViewResolver viewResolver : this.viewResolvers) {
+            View view = viewResolver.resolveViewName(mv.getViewName());
+            view.render(mv.getModel(), req, resp);
+            return;
+        }
 
     }
 
@@ -130,6 +168,6 @@ public class DispactherServlet2 extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        super.doGet(req, resp);
+        doPost(req, resp);
     }
 }

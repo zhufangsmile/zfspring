@@ -11,6 +11,7 @@ import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 
 public class ApplicationContext {
 
@@ -135,5 +136,9 @@ public class ApplicationContext {
 
     public int getBeanDefinitionCount() {
         return this.beanDefinitionMap.size();
+    }
+
+    public Properties getConfig() {
+        return this.reader.getConfig();
     }
 }
